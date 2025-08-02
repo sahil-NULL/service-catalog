@@ -1,0 +1,42 @@
+from uuid import UUID
+from sqlalchemy.orm import Session
+from ..models.system import System
+from ..schemas.system import SystemCreate, SystemUpdate
+
+
+def get_all(db: Session):
+    return db.query(System).all()
+
+
+def get_by_id(db: Session, system_id: str):
+    return db.query(System).filter(System.id == system_id).first()
+
+
+def create(db: Session, system_data: SystemCreate):
+    new_system = System(
+        name=system_data.name,
+        description=system_data.description,
+        organisation_id=str(system_data.organisation_id)
+    )
+    db.add(new_system)
+    db.commit()
+    db.refresh(new_system)
+    return new_system
+
+def update(db: Session, system_id: str, updates: SystemUpdate):
+    db_system = db.query(System).filter(System.id == system_id).first()
+    if not db_system:
+        return None
+    for field, value in updates.model_dump(exclude_unset=True).items():
+        setattr(db_system, field, value)
+    db.commit()
+    db.refresh(db_system)
+    return db_system
+
+
+def delete(db: Session, system_id: str):
+    system = get_by_id(db, system_id)
+    if system:
+        db.delete(system)
+        db.commit()
+    return system

@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Catalog - Backstage</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #fafafa;
+            color: #09090b;
+        }
+        
+        .header {
+            background: white;
+            border-bottom: 1px solid #e4e4e7;
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        
+        .logo {
+            font-size: 20px;
+            font-weight: 600;
+            color: #09090b;
+        }
+        
+        .group-selector {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropdown-trigger {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #e4e4e7;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        
+        .dropdown-trigger:hover {
+            border-color: #d4d4d8;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border: 1px solid #e4e4e7;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            z-index: 100;
+            margin-top: 4px;
+        }
+        
+        .dropdown-content.show {
+            display: block;
+        }
+        
+        .dropdown-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f4f4f5;
+        }
+        
+        .dropdown-item.indent-1 {
+            padding-left: 24px;
+        }
+        
+        .dropdown-item.indent-2 {
+            padding-left: 36px;
+        }
+        
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 64px);
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e4e4e7;
+            padding: 24px 0;
+        }
+        
+        .nav-section {
+            margin-bottom: 32px;
+        }
+        
+        .nav-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #71717a;
+            padding: 0 24px 12px;
+            border-bottom: 1px solid #f4f4f5;
+            margin-bottom: 12px;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #52525b;
+        }
+        
+        .nav-item:hover {
+            background-color: #f4f4f5;
+            color: #09090b;
+        }
+        
+        .nav-item.active {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            border-right: 2px solid #3b82f6;
+        }
+        
+        .nav-badge {
+            background: #f4f4f5;
+            color: #71717a;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-left: auto;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 24px;
+            overflow: auto;
+        }
+        
+        .page-header {
+            margin-bottom: 32px;
+        }
+        
+        .page-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .page-description {
+            color: #71717a;
+            font-size: 16px;
+        }
+        
+        .filters-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            align-items: center;
+        }
+        
+        .filter-input {
+            flex: 1;
+            max-width: 320px;
+            padding: 8px 12px;
+            border: 1px solid #e4e4e7;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .filter-button {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #e4e4e7;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-button:hover {
+            border-color: #d4d4d8;
+        }
+        
+        .create-button {
+            background: #09090b;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+        }
+        
+        .create-button:hover {
+            background: #27272a;
+        }
+        
+        .entity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        
+        .entity-card {
+            background: white;
+            border: 1px solid #e4e4e7;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .entity-card:hover {
+            border-color: #d4d4d8;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .entity-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .entity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .entity-icon.system {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .entity-icon.component {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .entity-icon.api {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        
+        .entity-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #09090b;
+        }
+        
+        .entity-type {
+            background: #f4f4f5;
+            color: #71717a;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: auto;
+        }
+        
+        .entity-description {
+            color: #71717a;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+        
+        .entity-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: #a1a1aa;
+        }
+        
+        .entity-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #71717a;
+            margin-bottom: 16px;
+        }
+        
+        .breadcrumb-separator {
+            color: #d4d4d8;
+        }
+
+        /* Sheet Component Styles */
+        .sheet-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .sheet-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sheet {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            width: 600px;
+            background: white;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            z-index: 1001;
+        }
+
+        .sheet.open {
+            transform: translateX(0);
+        }
+
+        .sheet-header {
+            padding: 24px;
+            border-bottom: 1px solid #e4e4e7;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sheet-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #09090b;
+        }
+
+        .sheet-description {
+            color: #71717a;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .sheet-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .sheet-close:hover {
+            background: #f4f4f5;
+        }
+
+        .sheet-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .sheet-footer {
+            padding: 24px;
+            border-top: 1px solid #e4e4e7;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #09090b;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e4e4e7;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e4e4e7;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .button {
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .button-primary {
+            background: #09090b;
+            color: white;
+        }
+
+        .button-primary:hover {
+            background: #27272a;
+        }
+
+        .button-secondary {
+            background: white;
+            color: #09090b;
+            border-color: #e4e4e7;
+        }
+
+        .button-secondary:hover {
+            background: #f4f4f5;
+        }
+
+        /* Entity Detail Styles */
+        .detail-section {
+            margin-bottom: 32px;
+        }
+
+        .detail-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #09090b;
+            margin-bottom: 16px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #71717a;
+            text-transform: uppercase;
+        }
+
+        .detail-value {
+            font-size: 14px;
+            color: #09090b;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.active {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-badge.inactive {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .status-badge.deprecated {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+            
+            .entity-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+
+            .sheet {
+                width: 90vw;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e4e4e7;
+            }
+            
+            .entity-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sheet {
+                width: 100vw;
+            }
+
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">🎭 Service Catalog</div>
+            
+            <!-- Group Selector -->
+            <div class="group-selector">
+                <div class="dropdown-trigger" onclick="toggleDropdown()">
+                    <span>Engineering Team</span>
+                    <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
+                </div>
+                <div class="dropdown-content" id="groupDropdown">
+                    <div class="dropdown-item">
+                        <i data-lucide="building" style="width: 16px; height: 16px;"></i>
+                        <span>All Organizations</span>
+                    </div>
+                    <div class="dropdown-item indent-1">
+                        <i data-lucide="users" style="width: 16px; height: 16px;"></i>
+                        <span>Engineering</span>
+                    </div>
+                    <div class="dropdown-item indent-2">
+                        <i data-lucide="code" style="width: 16px; height: 16px;"></i>
+                        <span>Frontend Team</span>
+                    </div>
+                    <div class="dropdown-item indent-2">
+                        <i data-lucide="server" style="width: 16px; height: 16px;"></i>
+                        <span>Backend Team</span>
+                    </div>
+                    <div class="dropdown-item indent-1">
+                        <i data-lucide="chart-bar" style="width: 16px; height: 16px;"></i>
+                        <span>Product</span>
+                    </div>
+                    <div class="dropdown-item indent-2">
+                        <i data-lucide="palette" style="width: 16px; height: 16px;"></i>
+                        <span>Design Team</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="header-right">
+            <button class="filter-button">
+                <i data-lucide="bell" style="width: 16px; height: 16px;"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="nav-section">
+                <h3 class="nav-title">Catalog</h3>
+                <div class="nav-item active">
+                    <i data-lucide="layout-grid" style="width: 20px; height: 20px;"></i>
+                    <span>Components</span>
+                    <span class="nav-badge">42</span>
+                </div>
+                <div class="nav-item">
+                    <i data-lucide="box" style="width: 20px; height: 20px;"></i>
+                    <span>Systems</span>
+                    <span class="nav-badge">12</span>
+                </div>
+                <div class="nav-item">
+                    <i data-lucide="plug" style="width: 20px; height: 20px;"></i>
+                    <span>APIs</span>
+                    <span class="nav-badge">28</span>
+                </div>
+                <div class="nav-item">
+                    <i data-lucide="database" style="width: 20px; height: 20px;"></i>
+                    <span>Resources</span>
+                    <span class="nav-badge">15</span>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <h3 class="nav-title">Organization</h3>
+                <div class="nav-item">
+                    <i data-lucide="building-2" style="width: 20px; height: 20px;"></i>
+                    <span>Domains</span>
+                    <span class="nav-badge">8</span>
+                </div>
+                <div class="nav-item">
+                    <i data-lucide="users" style="width: 20px; height: 20px;"></i>
+                    <span>Groups</span>
+                    <span class="nav-badge">6</span>
+                </div>
+                <div class="nav-item">
+                    <i data-lucide="user" style="width: 20px; height: 20px;"></i>
+                    <span>Users</span>
+                    <span class="nav-badge">124</span>
+                </div>
+            </div>
+            
+            <div class="nav-section">
+                <h3 class="nav-title">Tools</h3>
+                <div class="nav-item">
+                    <i data-lucide="search" style="width: 20px; height: 20px;"></i>
+                    <span>Search</span>
+                </div>
+                <div class="nav-item">
+                    <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
+                    <span>Templates</span>
+                    <span class="nav-badge">5</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="content">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <span>Catalog</span>
+                <i data-lucide="chevron-right" class="breadcrumb-separator" style="width: 16px; height: 16px;"></i>
+                <span>Components</span>
+            </div>
+            
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Components</h1>
+                <p class="page-description">
+                    Software components tracked in the Engineering Team catalog
+                </p>
+            </div>
+
+            <!-- Filters and Actions -->
+            <div class="filters-bar">
+                <input type="text" class="filter-input" placeholder="Search components..." id="searchInput">
+                <button class="filter-button">
+                    <i data-lucide="filter" style="width: 16px; height: 16px;"></i>
+                    Filter
+                </button>
+                <button class="filter-button">
+                    <i data-lucide="sort-asc" style="width: 16px; height: 16px;"></i>
+                    Sort
+                </button>
+                <button class="create-button" onclick="openCreateSheet()">
+                    <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                    Create Component
+                </button>
+            </div>
+
+            <!-- Entity Grid -->
+            <div class="entity-grid" id="entityGrid">
+                <!-- Component Card -->
+                <div class="entity-card" onclick="openViewSheet('user-service')">
+                    <div class="entity-header">
+                        <div class="entity-icon component">
+                            <i data-lucide="box" style="width: 20px; height: 20px;"></i>
+                        </div>
+                        <div>
+                            <div class="entity-title">user-service</div>
+                        </div>
+                        <div class="entity-type">service</div>
+                    </div>
+                    <div class="entity-description">
+                        Microservice handling user authentication, profiles, and authorization for the platform
+                    </div>
+                    <div class="entity-meta">
+                        <div class="entity-meta-item">
+                            <i data-lucide="user" style="width: 12px; height: 12px;"></i>
+                            <span>Backend Team</span>
+                        </div>
+                        <div class="entity-meta-item">
+                            <i data-lucide="git-branch" style="width: 12px; height: 12px;"></i>
+                            <span>main</span>
+                        </div>
+                        <div class="entity-meta-item">
+                            <i data-lucide="activity" style="width: 12px; height: 12px;"></i>
+                            <span>Active</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Card -->
+                <div class="entity-card" onclick="openViewSheet('payment-gateway')">
+                    <div class="entity-header">
+                        <div class="entity-icon system">
+                            <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+                        </div>
+                        <div>
+                            <div class="entity-title">payment-gateway</div>
+                        </div>
+                        <div class="entity-type">website</div>
+                    </div>
+                    <div class="entity-description">
+                        React-based payment processing interface with Stripe integration and fraud detection
+                    </div>
+                    <div class="entity-meta">
+                        <div class="entity-meta-item">
+                            <i data-lucide="user" style="width: 12px; height: 12px;"></i>
+                            <span>Frontend Team</span>
+                        </div>
+                        <div class="entity-meta-item">
+                            <i data-lucide="globe" style="width: 12px; height: 12px;"></i>
+                            <span>Production</span>
+                        </div>
+                        <div class="entity-meta-item">
+                            <i data-lucide="shield-check" style="width: 12px; height: 12px;"></i>
+                            <span>PCI Compliant</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Card -->
+                <div class="entity-card" onclick="openViewSheet('notification-api')">
+                    <div class="entity-header">
+                        <div class="entity-icon api">
+                            <i data-lucide="plug" style="width: 20px; height: 20px;"></i>
+                        </div>
+                        <div>
+                            <div class="entity-title">notification-api</div>
+                        </div>
+                        <div class="entity-type">library</div>
+                    </div>
+                    <div class="entity-description">
+                        Shared notification library for sending emails, SMS, and push notifications across services
+                    </div>
+                    <div class="entity-meta">
+                        <div class="entity-meta-item">
+                            <i data-lucide="user" style="width: 12px; height: 12px;"></i>
+                            <span>Backend Team</span>
+                        </div>
+                        <div class="entity-meta-item">
+                            <i data-lucide="package" style="width: 12px; height: 12px;"></i>
+                            <span>v2.1.4</span>
+                        </div>
+                        <div class="entity-meta-item">
+                            <i data-lucide="download" style="width: 12px; height: 12px;"></i>
+                            <span>1.2k/month</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- More cards... -->
+                <div class="entity-card" onclick="openViewSheet('analytics-pipeline')">
+                    <div class="entity-header">
+                        <div class="entity-icon component">
+                            <i data-lucide="database" style="width: 20px; height: 20px;"></i>
+                        </div>
+                        <div>
+                            <div class="entity-title">analytics-pipeline</div>
+                        </div>
+                        <div class="entity-type">service</div>
+                    </div>
+                    <div class="entity-description">
+                        ETL pipeline processing user events and generating business intelligence reports
+                    </div>
+                    <div class="entity-meta">
+                        <div class="entity-meta-item">
+                            <i data-lucide="user" style="width: 12px; height: 12px;"></i>
+                            <span>Data Team</span>
+                        </div>
+                        <div class="entity-meta-item">
+                            <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
+                            <span>2h ago</span>
+                        </div>
+                        <div class="entity-meta-item">
+                            <i data-lucide="trending-up" style="width: 12px; height: 12px;"></i>
+                            <span>High Load</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="entity-card" onclick="openViewSheet('admin-dashboard')">
+                    <div class="entity-header">
+                        <div class="entity-icon system">
+                            <i data-lucide="monitor" style="width: 20px; height: 20px;"></i>
+                        </div>
+                        <div>
+                            <div class="entity-title">admin-dashboard</div>
+                        </div>
+                        <div class="entity-type">website</div>
+                    </div>
+                    <div class="entity-description">
+                        Internal administration interface for managing users, content, and system configurations
+                    </div>
+                    <div class="entity-meta">
+                        <div class="entity-meta-item">
+                            <i data-lucide="user" style="width: 12px; height: 12px;"></i>
+                            <span>Frontend Team</span>
+                        </div>
+                        <div class="entity-meta-item">
+                            <i data-lucide="lock" style="width: 12px; height: 12px;"></i>
+                            <span>Internal</span>
+                        </div>
+                        <div class="entity-meta-item">
+                            <i data-lucide="users" style="width: 12px; height: 12px;"></i>
+                            <span>15 users</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="entity-card" onclick="openViewSheet('cache-service')">
+                    <div class="entity-header">
+                        <div class="entity-icon api">
+                            <i data-lucide="zap" style="width: 20px; height: 20px;"></i>
+                        </div>
+                        <div>
+                            <div class="entity-title">cache-service</div>
+                        </div>
+                        <div class="entity-type">service</div>
+                    </div>
+                    <div class="entity-description">
+                        Redis-based caching layer for improving application performance and reducing database load
+                    </div>
+                    <div class="entity-meta">
+                        <div class="entity-meta-item">
+                            <i data-lucide="user" style="width: 12px; height: 12px;"></i>
+                            <span>Backend Team</span>
+                        </div>
+                        <div class="entity-meta-item">
+                            <i data-lucide="cpu" style="width: 12px; height: 12px;"></i>
+                            <span>Redis 7.0</span>
+                        </div>
+                        <div class="entity-meta-item">
+                            <i data-lucide="gauge" style="width: 12px; height: 12px;"></i>
+                            <span>95% hit rate</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- View Entity Sheet -->
+    <div class="sheet-overlay" id="viewSheetOverlay" onclick="closeSheet('viewSheet')">
+        <div class="sheet" id="viewSheet" onclick="event.stopPropagation()">
+            <div class="sheet-header">
+                <div>
+                    <h2 class="sheet-title" id="viewSheetTitle">Component Details</h2>
+                    <p class="sheet-description">View component information and metadata</p>
+                </div>
+                <button class="sheet-close" onclick="closeSheet('viewSheet')">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
+            <div class="sheet-content" id="viewSheetContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="sheet-footer">
+                <button class="button button-secondary" onclick="closeSheet('viewSheet')">Close</button>
+                <button class="button button-primary" onclick="editEntity()">
+                    <i data-lucide="edit" style="width: 16px; height: 16px;"></i>
+                    Edit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Entity Sheet -->
+    <div class="sheet-overlay" id="createSheetOverlay" onclick="closeSheet('createSheet')">
+        <div class="sheet" id="createSheet" onclick="event.stopPropagation()">
+            <div class="sheet-header">
+                <div>
+                    <h2 class="sheet-title">Create Component</h2>
+                    <p class="sheet-description">Add a new component to the catalog</p>
+                </div>
+                <button class="sheet-close" onclick="closeSheet('createSheet')">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
+            <div class="sheet-content">
+                <form id="createForm">
+                    <div class="form-group">
+                        <label class="form-label" for="entityName">Name</label>
+                        <input type="text" id="entityName" class="form-input" placeholder="my-awesome-service" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="entityType">Type</label>
+                        <select id="entityType" class="form-select" required>
+                            <option value="">Select type...</option>
+                            <option value="service">Service</option>
+                            <option value="website">Website</option>
+                            <option value="library">Library</option>
+                            <option value="api">API</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="entityDescription">Description</label>
+                        <textarea id="entityDescription" class="form-input form-textarea" 
+                                placeholder="Brief description of what this component does..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="entityOwner">Owner Team</label>
+                        <select id="entityOwner" class="form-select" required>
+                            <option value="">Select team...</option>
+                            <option value="Frontend Team">Frontend Team</option>
+                            <option value="Backend Team">Backend Team</option>
+                            <option value="Data Team">Data Team</option>
+                            <option value="Design Team">Design Team</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="entityRepo">Repository URL</label>
+                        <input type="url" id="entityRepo" class="form-input" 
+                               placeholder="https://github.com/company/repo">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="entityStatus">Status</label>
+                        <select id="entityStatus" class="form-select" required>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="deprecated">Deprecated</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="sheet-footer">
+                <button class="button button-secondary" onclick="closeSheet('createSheet')">Cancel</button>
+                <button class="button button-primary" onclick="createEntity()">
+                    <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                    Create Component
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample entity data
+        const entityData = {
+            'user-service': {
+                name: 'user-service',
+                type: 'service',
+                description: 'Microservice handling user authentication, profiles, and authorization for the platform',
+                owner: 'Backend Team',
+                status: 'active',
+                repo: 'https://github.com/company/user-service',
+                version: 'v1.2.3',
+                lastUpdated: '2 hours ago',
+                dependencies: ['database-lib', 'auth-lib'],
+                tags: ['authentication', 'microservice', 'backend']
+            },
+            'payment-gateway': {
+                name: 'payment-gateway',
+                type: 'website',
+                description: 'React-based payment processing interface with Stripe integration and fraud detection',
+                owner: 'Frontend Team',
+                status: 'active',
+                repo: 'https://github.com/company/payment-gateway',
+                version: 'v2.1.0',
+                lastUpdated: '1 day ago',
+                dependencies: ['react', 'stripe-js'],
+                tags: ['payment', 'frontend', 'react']
+            },
+            'notification-api': {
+                name: 'notification-api',
+                type: 'library',
+                description: 'Shared notification library for sending emails, SMS, and push notifications across services',
+                owner: 'Backend Team',
+                status: 'active',
+                repo: 'https://github.com/company/notification-api',
+                version: 'v2.1.4',
+                lastUpdated: '3 days ago',
+                dependencies: ['nodemailer', 'twilio'],
+                tags: ['notifications', 'library', 'shared']
+            },
+            'analytics-pipeline': {
+                name: 'analytics-pipeline',
+                type: 'service',
+                description: 'ETL pipeline processing user events and generating business intelligence reports',
+                owner: 'Data Team',
+                status: 'active',
+                repo: 'https://github.com/company/analytics-pipeline',
+                version: 'v1.5.2',
+                lastUpdated: '2 hours ago',
+                dependencies: ['kafka', 'spark'],
+                tags: ['analytics', 'etl', 'data']
+            },
+            'admin-dashboard': {
+                name: 'admin-dashboard',
+                type: 'website',
+                description: 'Internal administration interface for managing users, content, and system configurations',
+                owner: 'Frontend Team',
+                status: 'active',
+                repo: 'https://github.com/company/admin-dashboard',
+                version: 'v1.8.1',
+                lastUpdated: '1 week ago',
+                dependencies: ['react', 'admin-ui-lib'],
+                tags: ['admin', 'dashboard', 'internal']
+            },
+            'cache-service': {
+                name: 'cache-service',
+                type: 'service',
+                description: 'Redis-based caching layer for improving application performance and reducing database load',
+                owner: 'Backend Team',
+                status: 'active',
+                repo: 'https://github.com/company/cache-service',
+                version: 'v3.0.1',
+                lastUpdated: '5 days ago',
+                dependencies: ['redis', 'node-cache'],
+                tags: ['cache', 'performance', 'redis']
+            }
+        };
+
+        // Initialize everything when DOM and scripts are ready
+        let lucideReady = false;
+        let domReady = false;
+
+        // Check if Lucide is loaded
+        function checkLucide() {
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucideReady = true;
+                if (domReady) initializeApp();
+            } else {
+                // Try again in 50ms
+                setTimeout(checkLucide, 50);
+            }
+        }
+
+        // DOM ready handler
+        document.addEventListener('DOMContentLoaded', function() {
+            domReady = true;
+            if (lucideReady) initializeApp();
+            // Initialize search regardless of icons
+            initializeSearch();
+        });
+
+        // Start checking for Lucide
+        checkLucide();
+
+        function initializeApp() {
+            try {
+                lucide.createIcons();
+                console.log('Lucide icons loaded successfully');
+            } catch (error) {
+                console.log('Error creating Lucide icons:', error);
+                useFallbackIcons();
+            }
+        }
+
+        function useFallbackIcons() {
+            console.log('Using fallback icons');
+            document.querySelectorAll('[data-lucide]').forEach(el => {
+                const iconName = el.getAttribute('data-lucide');
+                el.innerHTML = getIconFallback(iconName);
+                el.style.display = 'inline-flex';
+                el.style.alignItems = 'center';
+                el.style.justifyContent = 'center';
+            });
+        }
+        
+        // Fallback icon function
+        function getIconFallback(iconName) {
+            const fallbacks = {
+                'chevron-down': '▼',
+                'building': '🏢',
+                'users': '👥',
+                'code': '💻',
+                'server': '🖥️',
+                'chart-bar': '📊',
+                'palette': '🎨',
+                'bell': '🔔',
+                'layout-grid': '⊞',
+                'box': '📦',
+                'plug': '🔌',
+                'database': '💾',
+                'building-2': '🏗️',
+                'user': '👤',
+                'search': '🔍',
+                'file-text': '📄',
+                'chevron-right': '→',
+                'filter': '⚗️',
+                'sort-asc': '↑',
+                'plus': '+',
+                'git-branch': '🌿',
+                'activity': '⚡',
+                'layers': '📋',
+                'globe': '🌐',
+                'shield-check': '🛡️',
+                'package': '📦',
+                'download': '⬇️',
+                'clock': '🕐',
+                'trending-up': '📈',
+                'monitor': '🖥️',
+                'lock': '🔒',
+                'zap': '⚡',
+                'cpu': '💻',
+                'gauge': '⏲️',
+                'x': '✕',
+                'edit': '✏️'
+            };
+            return fallbacks[iconName] || '•';
+        }
+        
+        // Dropdown functionality
+        function toggleDropdown() {
+            const dropdown = document.getElementById('groupDropdown');
+            dropdown.classList.toggle('show');
+        }
+        
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.dropdown-trigger') && !event.target.closest('.dropdown-trigger')) {
+                const dropdown = document.getElementById('groupDropdown');
+                if (dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                }
+            }
+        }
+        
+        // Navigation functionality
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Sheet functionality
+        function openViewSheet(entityName) {
+            const entity = entityData[entityName];
+            if (!entity) return;
+
+            const overlay = document.getElementById('viewSheetOverlay');
+            const sheet = document.getElementById('viewSheet');
+            const title = document.getElementById('viewSheetTitle');
+            const content = document.getElementById('viewSheetContent');
+
+            title.textContent = entity.name;
+            
+            content.innerHTML = `
+                <div class="detail-section">
+                    <h3 class="detail-section-title">Overview</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Name</span>
+                            <span class="detail-value">${entity.name}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Type</span>
+                            <span class="detail-value">${entity.type}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Owner</span>
+                            <span class="detail-value">${entity.owner}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Status</span>
+                            <span class="status-badge ${entity.status}">${entity.status}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <h3 class="detail-section-title">Description</h3>
+                    <p style="color: #71717a; line-height: 1.6;">${entity.description}</p>
+                </div>
+                
+                <div class="detail-section">
+                    <h3 class="detail-section-title">Technical Details</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Repository</span>
+                            <a href="${entity.repo}" class="detail-value" style="color: #3b82f6; text-decoration: none;">${entity.repo}</a>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Version</span>
+                            <span class="detail-value">${entity.version}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Last Updated</span>
+                            <span class="detail-value">${entity.lastUpdated}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Dependencies</span>
+                            <span class="detail-value">${entity.dependencies.join(', ')}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <h3 class="detail-section-title">Tags</h3>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        ${entity.tags.map(tag => `<span class="entity-type">${tag}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+
+            overlay.classList.add('open');
+            sheet.classList.add('open');
+            
+            // Re-initialize icons for the new content
+            setTimeout(() => {
+                try {
+                    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                        lucide.createIcons();
+                    } else {
+                        useFallbackIcons();
+                    }
+                } catch (error) {
+                    useFallbackIcons();
+                }
+            }, 100);
+        }
+
+        function openCreateSheet() {
+            const overlay = document.getElementById('createSheetOverlay');
+            const sheet = document.getElementById('createSheet');
+            
+            // Reset form
+            document.getElementById('createForm').reset();
+            
+            overlay.classList.add('open');
+            sheet.classList.add('open');
+        }
+
+        function closeSheet(sheetId) {
+            const overlay = document.getElementById(sheetId + 'Overlay');
+            const sheet = document.getElementById(sheetId);
+            
+            overlay.classList.remove('open');
+            sheet.classList.remove('open');
+        }
+
+        function editEntity() {
+            alert('Edit functionality would open an edit form here');
+        }
+
+        function createEntity() {
+            const form = document.getElementById('createForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const formData = new FormData(form);
+            const entityName = document.getElementById('entityName').value;
+            const entityType = document.getElementById('entityType').value;
+            const entityDescription = document.getElementById('entityDescription').value;
+            const entityOwner = document.getElementById('entityOwner').value;
+            const entityRepo = document.getElementById('entityRepo').value;
+            const entityStatus = document.getElementById('entityStatus').value;
+
+            // Create new entity card
+            const entityGrid = document.getElementById('entityGrid');
+            const newCard = document.createElement('div');
+            newCard.className = 'entity-card';
+            newCard.onclick = () => openViewSheet(entityName);
+            
+            const iconClass = entityType === 'service' ? 'component' : 
+                             entityType === 'website' ? 'system' : 'api';
+            const iconName = entityType === 'service' ? 'box' :
+                            entityType === 'website' ? 'layers' : 'plug';
+
+            newCard.innerHTML = `
+                <div class="entity-header">
+                    <div class="entity-icon ${iconClass}">
+                        <i data-lucide="${iconName}" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <div class="entity-title">${entityName}</div>
+                    </div>
+                    <div class="entity-type">${entityType}</div>
+                </div>
+                <div class="entity-description">
+                    ${entityDescription}
+                </div>
+                <div class="entity-meta">
+                    <div class="entity-meta-item">
+                        <i data-lucide="user" style="width: 12px; height: 12px;"></i>
+                        <span>${entityOwner}</span>
+                    </div>
+                    <div class="entity-meta-item">
+                        <i data-lucide="activity" style="width: 12px; height: 12px;"></i>
+                        <span>${entityStatus}</span>
+                    </div>
+                    <div class="entity-meta-item">
+                        <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
+                        <span>Just now</span>
+                    </div>
+                </div>
+            `;
+
+            entityGrid.appendChild(newCard);
+
+            // Add to entity data
+            entityData[entityName] = {
+                name: entityName,
+                type: entityType,
+                description: entityDescription,
+                owner: entityOwner,
+                status: entityStatus,
+                repo: entityRepo || 'https://github.com/company/' + entityName,
+                version: 'v1.0.0',
+                lastUpdated: 'Just now',
+                dependencies: [],
+                tags: [entityType]
+            };
+
+            // Re-initialize icons
+            setTimeout(() => {
+                try {
+                    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                        lucide.createIcons();
+                    } else {
+                        useFallbackIcons();
+                    }
+                } catch (error) {
+                    useFallbackIcons();
+                }
+            }, 100);
+
+            closeSheet('createSheet');
+            
+            // Show success message
+            alert('Component created successfully!');
+        }
+
+        // Search functionality
+        function initializeSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', function(e) {
+                const query = e.target.value.toLowerCase();
+                const cards = document.querySelectorAll('.entity-card');
+                
+                cards.forEach(card => {
+                    const title = card.querySelector('.entity-title').textContent.toLowerCase();
+                    const description = card.querySelector('.entity-description').textContent.toLowerCase();
+                    const type = card.querySelector('.entity-type').textContent.toLowerCase();
+                    
+                    if (title.includes(query) || description.includes(query) || type.includes(query)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // ESC to close sheets
+            if (e.key === 'Escape') {
+                closeSheet('viewSheet');
+                closeSheet('createSheet');
+            }
+            
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+        });
+    </script>
+</body>
+</html>
