@@ -6,10 +6,10 @@ from ..database import Base
 
 class Group(Base):
     __tablename__ = "groups"
-    id = Column(UUID, primary_key=True, default=lambda: uuid.uuid4().bytes)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String, nullable=False)
-    parent_group_id = Column(UUID, ForeignKey("groups.id"))
-    organisation_id = Column(UUID, ForeignKey("organisations.id"))
+    parent_group_id = Column(String, ForeignKey("groups.id"))
+    organisation_id = Column(String, ForeignKey("organisations.id"))
 
     parent_group = relationship("Group", remote_side=[id], backref=backref("subgroups", cascade="all, delete-orphan"))
 

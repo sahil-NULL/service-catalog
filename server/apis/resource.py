@@ -8,8 +8,8 @@ from ..database import get_db
 router = APIRouter(prefix="/resources", tags=["Resources"])
 
 @router.post("/", response_model=ResourceOut)
-def create_resource(resource: ResourceCreate, db: Session = Depends(get_db)):
-    return resource_crud.create_resource(db, resource)
+def create_resource(group_id: str, resource: ResourceCreate, db: Session = Depends(get_db)):
+    return resource_crud.create_resource(db, group_id, resource)
 
 @router.get("/{resource_id}", response_model=ResourceOut)
 def read_resource(resource_id: str, db: Session = Depends(get_db)):

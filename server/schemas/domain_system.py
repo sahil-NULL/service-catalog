@@ -16,4 +16,4 @@ class DomainSystemCreate(DomainSystemBase):
 # 🔹 For returning links from DB
 class DomainSystemOut(DomainSystemBase):
     class Config:
-        orm_mode = True
+        from_attributes = True

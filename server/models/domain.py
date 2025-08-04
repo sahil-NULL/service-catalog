@@ -10,6 +10,7 @@ class Domain(Base):
     name = Column(String, nullable=False)
     description = Column(Text)
     organisation_id = Column(String, ForeignKey("organisations.id"), nullable=False)
+    parent_domain_id = Column(String, ForeignKey("domains.id"))
 
     organisation = relationship("Organisation", back_populates="domains")
     systems = relationship("System", secondary="domain_systems", back_populates="domains")

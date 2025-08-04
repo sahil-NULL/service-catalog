@@ -16,4 +16,4 @@ class ComponentResourceCreate(ComponentResourceBase):
 # 🔹 For returning dependency links
 class ComponentResourceOut(ComponentResourceBase):
     class Config:
-        orm_mode = True
+        from_attributes = True

@@ -16,4 +16,4 @@ class GroupUserCreate(GroupUserBase):
 # 🔹 For returning links from DB
 class GroupUserOut(GroupUserBase):
     class Config:
-        orm_mode = True
+        from_attributes = True

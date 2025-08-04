@@ -22,8 +22,8 @@ def get_component(component_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=ComponentOut, status_code=status.HTTP_201_CREATED)
-def create_component(component: ComponentCreate, db: Session = Depends(get_db)):
-    return component_crud.create(db, component)
+def create_component(component: ComponentCreate, group_id: str, db: Session = Depends(get_db)):
+    return component_crud.create(db, group_id, component)
 
 
 @router.put("/{component_id}", response_model=ComponentOut)

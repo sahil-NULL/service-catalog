@@ -1,8 +1,13 @@
 from sqlalchemy.orm import Session
 from ..models.api import API
 from ..schemas.api import APICreate, APIUpdate
+from ..models.group import Group
+from ..schemas.group_api import GroupApiCreate
+from ..crud import group_api
+from fastapi import HTTPException
 
-def create_api(db: Session, api_data: APICreate):
+def create_api(db: Session, group_id: str, api_data: APICreate):
+    # Step 1: Create the API
     new_api = API(
         name=api_data.name,
         type=api_data.type,
@@ -12,6 +17,23 @@ def create_api(db: Session, api_data: APICreate):
     db.add(new_api)
     db.commit()
     db.refresh(new_api)
+    
+    # Step 2: Determine which group to link to
+    final_group_id = group_id
+    if final_group_id is None:
+        all_teams_group = db.query(Group).filter(
+            Group.organisation_id == str(api_data.organisation_id),
+            Group.name == "All Teams"
+        ).first()
+        if not all_teams_group:
+            raise HTTPException(status_code=404, detail='"All Teams" group not found')
+        final_group_id = str(all_teams_group.id)
+
+    # Step 3: Link the API to the group
+    group_api.create_group_api(db, GroupApiCreate(
+        group_id=final_group_id,
+        api_id=str(new_api.id)
+    ))
     return new_api
 
 def get_api(db: Session, api_id: str):

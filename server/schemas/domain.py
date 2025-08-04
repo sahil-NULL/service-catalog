@@ -11,6 +11,7 @@ class DomainBase(BaseModel):
 # 🔹 Schema for creating a domain
 class DomainCreate(DomainBase):
     organisation_id: UUID
+    parent_domain_id: Optional[UUID] = None
 
 # 🔹 Schema for updating a domain
 class DomainUpdate(BaseModel):
@@ -21,6 +22,7 @@ class DomainUpdate(BaseModel):
 class DomainOut(DomainBase):
     id: UUID
     organisation_id: UUID
+    parent_domain_id: Optional[UUID] = None 
 
     class Config:
         from_attributes = True

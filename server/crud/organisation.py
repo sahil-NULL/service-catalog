@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Session
 from ..schemas.organisation import OrganisationCreate, OrganisationUpdate
 from ..models.organisation import Organisation
-from uuid import UUID
+import uuid
 from fastapi import HTTPException
+from ..models.group import Group
 
 # 🔹 Create a new organisation
 def create_organisation(db: Session, org_data: OrganisationCreate) -> Organisation:
@@ -11,6 +12,16 @@ def create_organisation(db: Session, org_data: OrganisationCreate) -> Organisati
         db.add(org)
         db.commit()
         db.refresh(org)
+
+        default_group = Group(
+            id=str(uuid.uuid4()), 
+            name="All Teams",
+            organisation_id=org.id,
+            parent_group_id=None
+        )
+        db.add(default_group)
+        db.commit()
+        db.refresh(default_group)
         return org
     except Exception as e:
         db.rollback()

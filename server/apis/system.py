@@ -22,8 +22,8 @@ def get_system(system_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=SystemOut, status_code=status.HTTP_201_CREATED)
-def create_system(system: SystemCreate, db: Session = Depends(get_db)):
-    return system_crud.create(db, system)
+def create_system(system: SystemCreate, group_id: str, db: Session = Depends(get_db)):
+    return system_crud.create(db, group_id, system)
 
 
 @router.put("/{system_id}", response_model=SystemOut)

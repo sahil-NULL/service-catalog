@@ -16,4 +16,4 @@ class GroupSystemCreate(GroupSystemBase):
 # 🔹 For returning links from DB
 class GroupSystemOut(GroupSystemBase):
     class Config:
-        orm_mode = True
+        from_attributes = True

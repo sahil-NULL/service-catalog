@@ -24,4 +24,4 @@ class ComponentAPICreate(ComponentAPIBase):
 # 🔹 Schema for reading from DB
 class ComponentAPIOut(ComponentAPIBase):
     class Config:
-        orm_mode = True
+        from_attributes = True

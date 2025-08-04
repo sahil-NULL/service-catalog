@@ -7,8 +7,8 @@ from ..schemas.api import APICreate, APIUpdate, APIOut
 router = APIRouter(prefix="/apis", tags=["APIs"])
 
 @router.post("/", response_model=APIOut)
-def create_api(api: APICreate, db: Session = Depends(get_db)):
-    return api_crud.create_api(db, api)
+def create_api(api: APICreate, group_id: str, db: Session = Depends(get_db)):
+    return api_crud.create_api(db, group_id, api)
 
 @router.get("/{api_id}", response_model=APIOut)
 def read_api(api_id: str, db: Session = Depends(get_db)):

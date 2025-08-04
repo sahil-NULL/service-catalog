@@ -16,4 +16,4 @@ class OrganisationUserCreate(OrganisationUserBase):
 # 🔹 For returning links from DB
 class OrganisationUserOut(OrganisationUserBase):
     class Config:
-        orm_mode = True
+        from_attributes = True
