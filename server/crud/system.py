@@ -16,6 +16,19 @@ def get_by_id(db: Session, system_id: str):
     return db.query(System).filter(System.id == system_id).first()
 
 
+def get_all_by_group_id(db: Session, group_id: str):
+    # Step 1: Get system IDs linked to the group
+    data = group_system.get_systems_by_group(db, group_id)
+    system_ids = data["system_ids"]
+
+    if not system_ids:
+        return []
+
+    # Step 2: Batch query all systems
+    systems = db.query(System).filter(System.id.in_(system_ids)).all()
+
+    return systems
+
 def create(db: Session, group_id: str | None, system_data: SystemCreate):
     try:
         # Step 1: Create the system

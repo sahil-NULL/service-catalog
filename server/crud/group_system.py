@@ -93,7 +93,12 @@ def get_systems_by_group(db: Session, group_id: str):
         group_systems.select().where(group_systems.c.group_id == group_id)
     ).fetchall()
 
-    return [GroupSystemOut(group_id=row.group_id, system_id=row.system_id) for row in rows]
+    system_ids = [row.system_id for row in rows]
+
+    return {
+        "group_id": group_id,
+        "system_ids": system_ids
+    }
 
 
 def get_groups_by_system(db: Session, system_id: str):

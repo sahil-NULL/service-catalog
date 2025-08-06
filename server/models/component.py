@@ -18,3 +18,4 @@ class Component(Base):
     resources = relationship("Resource", secondary="component_resources", back_populates="components")
     component_apis = relationship("ComponentAPI", back_populates="component")
     organisation = relationship("Organisation", back_populates="components")
+    component_links = relationship("SystemComponent", back_populates="component")

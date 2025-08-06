@@ -3,8 +3,10 @@ from pathlib import Path
 import sys
 import os
 
-# Add the parent directory to sys.path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add the current directory to sys.path so we can import from the server directory
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool

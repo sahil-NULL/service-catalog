@@ -42,6 +42,19 @@ def create_resource(db: Session, group_id: str, resource_data: ResourceCreate):
 def get_resource(db: Session, resource_id: str):
     return db.query(Resource).filter(Resource.id == resource_id).first()
 
+def get_all_by_group_id(db: Session, group_id: str):
+    # Step 1: Get resource IDs linked to the group
+    data = group_resource.get_resources_by_group(db, group_id)
+    resource_ids = data["resource_ids"]
+
+    if not resource_ids:
+        return []
+
+    # Step 2: Batch query all resources
+    resources = db.query(Resource).filter(Resource.id.in_(resource_ids)).all()
+
+    return resources
+
 def get_all_resources(db: Session, skip: int = 0, limit: int = 100):
     return db.query(Resource).offset(skip).limit(limit).all()
 

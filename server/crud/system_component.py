@@ -5,7 +5,7 @@ from ..models.system_component import SystemComponent
 from ..schemas.system_component import SystemComponentCreate, SystemComponentOut
 from ..models.group_system import group_systems
 from ..models.group_component import group_components
-from sqlalchemy import select, insert, delete
+from sqlalchemy import select, insert, and_
 
 
 def create_system_component(db: Session, link: SystemComponentCreate):
@@ -29,22 +29,34 @@ def create_system_component(db: Session, link: SystemComponentCreate):
         )
     )
 
-    # Step 3: Fetch all groups linked to the system
+    # Step 3: Fetch all group_ids linked to the system
     group_rows = db.execute(
         select(group_systems.c.group_id).where(
             group_systems.c.system_id == str(link.system_id)
         )
     ).fetchall()
 
-    # Step 4: Batch insert into group_components
     new_links = []
     for row in group_rows:
         group_id = row.group_id
-        new_links.append({
-            "group_id": group_id,
-            "component_id": str(link.component_id)
-        })
 
+        # Step 4: Check if (group_id, component_id) already exists
+        group_component_exists = db.execute(
+            select(group_components).where(
+                and_(
+                    group_components.c.group_id == group_id,
+                    group_components.c.component_id == str(link.component_id)
+                )
+            )
+        ).first()
+
+        if not group_component_exists:
+            new_links.append({
+                "group_id": group_id,
+                "component_id": str(link.component_id)
+            })
+
+    # Step 5: Batch insert only the new (non-duplicate) links
     if new_links:
         db.execute(insert(group_components).values(new_links))
 
@@ -65,13 +77,11 @@ def get_components_by_system(db: Session, system_id: str):
 
 
 def delete_system_component(db: Session, system_id: str, component_id: str):
-    result = db.execute(
-        SystemComponent.delete().where(
-            (SystemComponent.system_id == system_id) &
-            (SystemComponent.component_id == component_id)
-        )
-    )
-    db.commit()
-    if result.rowcount == 0:
+    link = db.query(SystemComponent).filter_by(system_id=system_id, component_id=component_id).first()
+    if not link:
         raise HTTPException(status_code=404, detail="Link not found")
+    
+    db.delete(link)
+    db.commit()
+    
     return {"message": "Deleted"}

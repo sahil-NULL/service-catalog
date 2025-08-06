@@ -1,5 +1,4 @@
 from sqlalchemy import Table, Column, ForeignKey, String
-from sqlalchemy.dialects.sqlite import BLOB as UUID
 from ..database import Base
 
 group_users = Table(

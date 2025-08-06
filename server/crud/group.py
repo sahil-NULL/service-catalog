@@ -3,7 +3,6 @@ from fastapi import HTTPException
 from uuid import UUID
 from ..models.group import Group
 from ..schemas.group import GroupCreate, GroupUpdate
-from typing import List
 
 # 🔹 Create a new group
 def create_group(db: Session, group_data: GroupCreate):
@@ -56,30 +55,8 @@ def get_all_groups(db: Session, skip: int = 0, limit: int = 100):
     return db.query(Group).offset(skip).limit(limit).all()
 
 # 🔹 Get groups by organisation ID
-def get_groups_by_organisation(db: Session, organisation_id: str) -> List[dict]:
-    groups = db.query(Group).filter(Group.organisation_id == organisation_id).all()
-
-    # Create a map of group_id to group dict
-    group_map = {
-        group.id: {
-            "id": str(group.id),
-            "name": group.name,
-            "subgroups": []
-        }
-        for group in groups
-    }
-
-    # Build the hierarchy
-    root_groups = []
-    for group in groups:
-        if group.parent_group_id:
-            parent = group_map.get(group.parent_group_id)
-            if parent:
-                parent["subgroups"].append(group_map[group.id])
-        else:
-            root_groups.append(group_map[group.id])
-
-    return root_groups
+def get_groups_by_organisation(db: Session, organisation_id: str, skip: int = 0, limit: int = 100):
+    return db.query(Group).filter(Group.organisation_id == organisation_id).offset(skip).limit(limit).all()
 
 # 🔹 Update a group
 def update_group(db: Session, group_id: str, updates: GroupUpdate):

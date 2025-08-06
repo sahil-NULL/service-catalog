@@ -42,6 +42,19 @@ def get_api(db: Session, api_id: str):
 def get_all_apis(db: Session, skip: int = 0, limit: int = 100):
     return db.query(API).offset(skip).limit(limit).all()
 
+def get_all_by_group_id(db: Session, group_id: str):
+    # Step 1: Get api IDs linked to the group
+    data = group_api.get_apis_by_group(db, group_id)
+    api_ids = data["api_ids"]
+
+    if not api_ids:
+        return []
+
+    # Step 2: Batch query all apis
+    apis = db.query(API).filter(API.id.in_(api_ids)).all()
+
+    return apis
+
 def update_api(db: Session, api_id: str, updates: APIUpdate):
     db_api = db.query(API).filter(API.id == api_id).first()
     if not db_api:

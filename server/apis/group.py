@@ -19,7 +19,7 @@ def create_group(group: GroupCreate, db: Session = Depends(get_db)):
         )
     return group_crud.create_group(db, group)
 
-@router.get("/{group_id}", response_model=GroupOut)
+@router.get("/group/{group_id}", response_model=GroupOut)
 def read_group(group_id: str, db: Session = Depends(get_db)):
     db_group = group_crud.get_group(db, group_id)
     if not db_group:

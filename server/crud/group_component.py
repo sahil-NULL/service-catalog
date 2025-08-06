@@ -92,7 +92,12 @@ def get_components_by_group(db: Session, group_id: str):
         group_components.select().where(group_components.c.group_id == group_id)
     ).fetchall()
 
-    return [GroupComponentOut(group_id=row.group_id, component_id=row.component_id) for row in rows]
+    component_ids = [row.component_id for row in rows]
+
+    return {
+        "group_id": group_id,
+        "component_ids": component_ids
+    }
 
 
 def delete_group_component(db: Session, link: GroupComponentCreate):

@@ -13,6 +13,11 @@ def get_all_systems(db: Session = Depends(get_db)):
     return system_crud.get_all(db)
 
 
+@router.get("/by-group/{group_id}", response_model=list[SystemOut])
+def get_all_systems_by_group(group_id: str, db: Session = Depends(get_db)):
+    return system_crud.get_all_by_group_id(db, group_id)
+
+
 @router.get("/{system_id}", response_model=SystemOut)
 def get_system(system_id: str, db: Session = Depends(get_db)):
     system = system_crud.get_by_id(db, system_id)

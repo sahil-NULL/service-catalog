@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from uuid import UUID
 from ..models.user import User
 from ..schemas.user import UserCreate, UserUpdate
+from ..crud import group_user
 
 # 🔹 Create a new user
 def create_user(db: Session, user_data: UserCreate):
@@ -32,6 +33,19 @@ def get_user_by_username(db: Session, username: str):
 # 🔹 Get all users
 def get_all_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(User).offset(skip).limit(limit).all()
+
+def get_all_by_group_id(db: Session, group_id: str):
+    # Step 1: Get user IDs linked to the group
+    data = group_user.get_users_by_group(db, group_id)
+    user_ids = data["user_ids"]
+
+    if not user_ids:
+        return []
+
+    # Step 2: Batch query all users
+    users = db.query(User).filter(User.id.in_(user_ids)).all()
+
+    return users
 
 # 🔹 Update a user
 def update_user(db: Session, user_id: str, updates: UserUpdate):

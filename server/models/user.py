@@ -1,6 +1,5 @@
 import uuid
 from sqlalchemy import Column, String
-from sqlalchemy.dialects.sqlite import BLOB as UUID
 from sqlalchemy.orm import relationship
 from ..database import Base
 

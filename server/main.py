@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
 from . import models
 from .apis.organisation import router as organisation_router
@@ -20,8 +21,18 @@ from .apis.component_dependency import router as component_dependency_router
 from .apis.group_component import router as group_component_router
 from .apis.group_resource import router as group_resource_router
 from .apis.group_api import router as group_api_router
+from .apis.graph import router as graph_router
 
 app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Include routers
 app.include_router(organisation_router)
@@ -43,6 +54,7 @@ app.include_router(component_dependency_router)
 app.include_router(group_component_router)
 app.include_router(group_resource_router)
 app.include_router(group_api_router)
+app.include_router(graph_router)
 
 Base.metadata.create_all(bind=engine)
 

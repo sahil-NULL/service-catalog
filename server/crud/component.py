@@ -16,6 +16,22 @@ def get_by_id(db: Session, component_id: str):
     return db.query(Component).filter(Component.id == component_id).first()
 
 
+def get_all_by_group_id(db: Session, group_id: str):
+    # Step 1: Get component IDs linked to the group
+    data = group_component.get_components_by_group(db, group_id)
+    component_ids = data["component_ids"]
+    print(component_ids)
+
+    if not component_ids:
+        return []
+
+    # Step 2: Batch query all components
+    components = db.query(Component).filter(Component.id.in_(component_ids)).all()
+    print(components)
+
+    return components
+
+
 def create(db: Session, group_id: str | None, component_data: ComponentCreate):
     try:
         # Step 1: Create the component

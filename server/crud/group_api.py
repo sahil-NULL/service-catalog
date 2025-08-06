@@ -92,7 +92,12 @@ def get_apis_by_group(db: Session, group_id: str):
         group_apis.select().where(group_apis.c.group_id == group_id)
     ).fetchall()
 
-    return [GroupApiOut(group_id=row.group_id, api_id=row.api_id) for row in rows]
+    api_ids = [row.api_id for row in rows]
+
+    return {
+        "group_id": group_id,
+        "api_ids": api_ids
+    }
 
 
 def delete_group_api(db: Session, link: GroupApiCreate):

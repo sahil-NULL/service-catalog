@@ -92,7 +92,12 @@ def get_resources_by_group(db: Session, group_id: str):
         group_resources.select().where(group_resources.c.group_id == group_id)
     ).fetchall()
 
-    return [GroupResourceOut(group_id=row.group_id, resource_id=row.resource_id) for row in rows]
+    resource_ids = [row.resource_id for row in rows]
+
+    return {
+        "group_id": group_id,
+        "resource_ids": resource_ids
+    }
 
 
 def delete_group_resource(db: Session, link: GroupResourceCreate):

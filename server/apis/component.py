@@ -13,12 +13,18 @@ def get_all_components(db: Session = Depends(get_db)):
     return component_crud.get_all(db)
 
 
+@router.get("/by-group/{group_id}", response_model=list[ComponentOut])
+def get_all_components_by_group(group_id: str, db: Session = Depends(get_db)):
+    return component_crud.get_all_by_group_id(db, group_id)
+
+
 @router.get("/{component_id}", response_model=ComponentOut)
 def get_component(component_id: str, db: Session = Depends(get_db)):
     component = component_crud.get_by_id(db, component_id)
     if not component:
         raise HTTPException(status_code=404, detail="Component not found")
     return component
+
 
 
 @router.post("/", response_model=ComponentOut, status_code=status.HTTP_201_CREATED)

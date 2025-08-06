@@ -11,16 +11,23 @@ router = APIRouter(prefix="/resources", tags=["Resources"])
 def create_resource(group_id: str, resource: ResourceCreate, db: Session = Depends(get_db)):
     return resource_crud.create_resource(db, group_id, resource)
 
+
+
+@router.get("/", response_model=list[ResourceOut])
+def list_resources(db: Session = Depends(get_db)):
+    return resource_crud.get_all_resources(db)
+
+@router.get("/by-group/{group_id}", response_model=list[ResourceOut])
+def get_all_resources_by_group(group_id: str, db: Session = Depends(get_db)):
+    return resource_crud.get_all_by_group_id(db, group_id)
+
+
 @router.get("/{resource_id}", response_model=ResourceOut)
 def read_resource(resource_id: str, db: Session = Depends(get_db)):
     db_resource = resource_crud.get_resource(db, resource_id)
     if not db_resource:
         raise HTTPException(status_code=404, detail="Resource not found")
     return db_resource
-
-@router.get("/", response_model=list[ResourceOut])
-def list_resources(db: Session = Depends(get_db)):
-    return resource_crud.get_all_resources(db)
 
 @router.put("/{resource_id}", response_model=ResourceOut)
 def update_resource(resource_id: str, updates: ResourceUpdate, db: Session = Depends(get_db)):

@@ -15,3 +15,4 @@ class System(Base):
     domains = relationship("Domain", secondary="domain_systems", back_populates="systems")
     groups = relationship("Group", secondary="group_systems", back_populates="systems")
     organisation = relationship("Organisation", back_populates="systems")
+    system_components = relationship("SystemComponent", back_populates="system")
