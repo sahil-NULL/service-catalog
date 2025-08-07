@@ -66,10 +66,10 @@ def create_system_component(db: Session, link: SystemComponentCreate):
 
 def get_components_by_system(db: Session, system_id: str):
     results = db.execute(
-        SystemComponent.select().where(
+        select(SystemComponent).where(
             SystemComponent.system_id == system_id
         )
-    ).fetchall()
+    ).scalars().all()
     return [
         SystemComponentOut(system_id=row.system_id, component_id=row.component_id, type=row.type)
         for row in results

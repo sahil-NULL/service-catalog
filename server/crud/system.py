@@ -1,11 +1,16 @@
 from uuid import UUID
 from sqlalchemy.orm import Session
+from sqlalchemy import select
+
+from ..models.group_component import group_components
+from ..models.system_component import SystemComponent
+from ..models.component import Component
 from ..models.system import System
 from ..schemas.system import SystemCreate, SystemUpdate
 from ..models.group import Group
 from ..schemas.group_system import GroupSystemCreate
-from ..crud import group_system
-from fastapi import HTTPException
+from ..crud import group_system, group_user
+from fastapi import HTTPException   
 
 
 def get_all(db: Session):
@@ -28,6 +33,48 @@ def get_all_by_group_id(db: Session, group_id: str):
     systems = db.query(System).filter(System.id.in_(system_ids)).all()
 
     return systems
+
+
+def get_all_addable_components_by_user_id(db: Session, user_id: str, organisation_id: str, system_id: str):
+    # Step 1: Get all groups of the user in the organisation
+    groups = group_user.get_groups_by_user_and_organisation(db, user_id, organisation_id)
+    group_ids = [str(group.id) for group in groups]
+
+    if not group_ids:
+        return []
+
+    # Step 2: Get all components available in the user's groups (from group_components)
+    group_component_rows = db.execute(
+        select(group_components.c.component_id).where(
+            group_components.c.group_id.in_(group_ids)
+        )
+    ).fetchall()
+
+    group_component_ids = {row.component_id for row in group_component_rows}
+
+    if not group_component_ids:
+        return []
+
+    # Step 3: Get all components already linked to the system
+    system_component_rows = db.execute(
+        select(SystemComponent.component_id).where(
+            SystemComponent.system_id == system_id
+        )
+    ).fetchall()
+
+    system_component_ids = {row.component_id for row in system_component_rows}
+
+    # Step 4: Filter out components already in the system
+    addable_component_ids = list(group_component_ids - system_component_ids)
+
+    if not addable_component_ids:
+        return []
+
+    # Step 5: Fetch component objects
+    components = db.query(Component).filter(Component.id.in_(addable_component_ids)).all()
+
+    return components
+
 
 def create(db: Session, group_id: str | None, system_data: SystemCreate):
     try:

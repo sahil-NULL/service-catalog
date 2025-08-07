@@ -26,6 +26,10 @@ def get_component(component_id: str, db: Session = Depends(get_db)):
     return component
 
 
+@router.get("/addable-components/", response_model=list[ComponentOut])
+def get_all_addable_components_by_user_id(user_id: str, organisation_id: str, component_id: str, db: Session = Depends(get_db)):
+    return component_crud.get_all_addable_components_by_user_id(db, user_id, organisation_id, component_id)
+
 
 @router.post("/", response_model=ComponentOut, status_code=status.HTTP_201_CREATED)
 def create_component(component: ComponentCreate, group_id: str, db: Session = Depends(get_db)):

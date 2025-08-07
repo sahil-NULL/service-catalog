@@ -1,8 +1,13 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 from fastapi import HTTPException
 from uuid import UUID
 from ..models.domain import Domain
+from ..models.group_system import group_systems
 from ..schemas.domain import *
+from ..crud import group_user
+from ..crud import domain_system
+from ..models.system import System
 
 
 # Create new domain
@@ -32,6 +37,33 @@ def get_all_domains(db: Session, skip: int = 0, limit: int = 100):
 
 def get_domains_by_organisation(db: Session, organisation_id: str):
     return db.query(Domain).filter(Domain.organisation_id == organisation_id).all()
+
+
+def get_addable_systems_by_user_id(db: Session, user_id: str, organisation_id: str, domain_id: str):
+    # Step 1: Get all groups of the user in the organisation
+    groups = group_user.get_groups_by_user_and_organisation(db, user_id, organisation_id)
+    group_ids = [str(group.id) for group in groups]
+
+    # Step 2: Get all systems available in the user's groups (from group_systems)
+    group_system_rows = db.execute(
+        select(group_systems.c.system_id).where(
+            group_systems.c.group_id.in_(group_ids)
+        )
+    ).fetchall()
+
+    all_system_ids = [row.system_id for row in group_system_rows]
+
+    # Step 3: Get all systems linked to the domain
+    domain_systems = domain_system.get_systems_by_domain(db, domain_id)
+    linked_system_ids = [row.system_id for row in domain_systems]
+
+    # Step 4: Filter out systems that are already linked to the domain
+    addable_system_ids = list(set(all_system_ids) - set(linked_system_ids))
+
+    # Step 5: Get all systems by IDs
+    addable_systems = db.query(System).filter(System.id.in_(addable_system_ids)).all()
+
+    return addable_systems
 
 
 def update_domain(db: Session, domain_id: str, updates: DomainUpdate):

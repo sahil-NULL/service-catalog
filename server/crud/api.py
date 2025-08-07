@@ -1,9 +1,13 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 from ..models.api import API
 from ..schemas.api import APICreate, APIUpdate
 from ..models.group import Group
+from ..models.group_api import group_apis
 from ..schemas.group_api import GroupApiCreate
 from ..crud import group_api
+from ..crud import group_user
+from ..crud import component_api
 from fastapi import HTTPException
 
 def create_api(db: Session, group_id: str, api_data: APICreate):
@@ -52,6 +56,44 @@ def get_all_by_group_id(db: Session, group_id: str):
 
     # Step 2: Batch query all apis
     apis = db.query(API).filter(API.id.in_(api_ids)).all()
+
+    return apis
+
+def get_all_addable_apis_by_user_id(db: Session, component_id: str, user_id: str, organisation_id: str):
+    # Step 1: Get all groups of the user in the organisation
+    groups = group_user.get_groups_by_user_and_organisation(db, user_id, organisation_id)
+    group_ids = [str(group.id) for group in groups]
+
+    if not group_ids:
+        return []
+
+    # Step 2: Get all apis available in the user's groups (from group_api)
+    group_api_rows = db.execute(
+        select(group_apis.c.api_id).where(
+            group_apis.c.group_id.in_(group_ids)
+        )
+    ).fetchall()
+
+    group_api_ids = {row.api_id for row in group_api_rows}
+
+
+    if not group_api_ids:
+        return []
+
+    # Step 3: Get all apis already linked to the component
+    component_api_rows = component_api.get_apis_by_component(db, component_id)
+    linked_api_ids = {row.api_id for row in component_api_rows}
+
+
+    # Step 4: Filter out resources already in the component
+    addable_api_ids = list(group_api_ids - linked_api_ids)
+
+
+    if not addable_api_ids:
+        return []
+
+    # Step 5: Fetch api objects
+    apis = db.query(API).filter(API.id.in_(addable_api_ids)).all()
 
     return apis
 

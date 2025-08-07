@@ -4,6 +4,8 @@ from uuid import UUID
 from ..models.user import User
 from ..schemas.user import UserCreate, UserUpdate
 from ..crud import group_user
+from ..crud import organisation_user
+from ..crud import group as group_crud
 
 # 🔹 Create a new user
 def create_user(db: Session, user_data: UserCreate):
@@ -46,6 +48,28 @@ def get_all_by_group_id(db: Session, group_id: str):
     users = db.query(User).filter(User.id.in_(user_ids)).all()
 
     return users
+
+def get_all_addable_users_for_group(db: Session, group_id: str):
+    # Step 0: Get the group
+    group = group_crud.get_group(db, group_id)
+    organisation_id = group.organisation_id
+
+    # Step 1: Get user IDs linked to the group
+    data = group_user.get_users_by_group(db, group_id)
+    linked_user_ids = data["user_ids"]
+
+    # Step 2: Get all users in the organisation
+    all_users = organisation_user.get_users_by_organisation(db, organisation_id)
+    all_user_ids = [str(user.user_id) for user in all_users]
+    
+    # Step 3: Filter out users that are already in the group
+    addable_users = [user for user in all_user_ids if user not in linked_user_ids]
+
+    # Step 4: Get the users
+    addable_users = db.query(User).filter(User.id.in_(addable_users)).all()
+
+
+    return addable_users
 
 # 🔹 Update a user
 def update_user(db: Session, user_id: str, updates: UserUpdate):

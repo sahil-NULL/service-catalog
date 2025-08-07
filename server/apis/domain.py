@@ -4,6 +4,7 @@ from uuid import UUID
 from ..database import get_db
 from ..crud import domain as crud
 from ..schemas.domain import DomainOut, DomainCreate, DomainUpdate
+from ..schemas.system import SystemOut
 
 router = APIRouter(prefix="/domains", tags=["Domains"])
 
@@ -22,6 +23,11 @@ def read_domain(domain_id: str, db: Session = Depends(get_db)):
     if not db_domain:
         raise HTTPException(status_code=404, detail="Domain not found")
     return db_domain
+
+
+@router.get("/addable/", response_model=list[SystemOut])
+def read_addable_systems(domain_id: str, user_id: str, organisation_id: str, db: Session = Depends(get_db)):
+    return crud.get_addable_systems_by_user_id(db, user_id, organisation_id, domain_id)
 
 
 @router.get("/organisation/{org_id}", response_model=list[DomainOut])

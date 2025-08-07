@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..schemas.system import SystemCreate, SystemOut, SystemUpdate
 from ..crud import system as system_crud
+from ..schemas.component import ComponentOut
 
 
 router = APIRouter(prefix="/systems", tags=["Systems"])
@@ -16,6 +17,11 @@ def get_all_systems(db: Session = Depends(get_db)):
 @router.get("/by-group/{group_id}", response_model=list[SystemOut])
 def get_all_systems_by_group(group_id: str, db: Session = Depends(get_db)):
     return system_crud.get_all_by_group_id(db, group_id)
+
+
+@router.get("/addable-components/", response_model=list[ComponentOut])
+def get_all_addable_components_by_user_id(user_id: str, organisation_id: str, system_id: str, db: Session = Depends(get_db)):
+    return system_crud.get_all_addable_components_by_user_id(db, user_id, organisation_id, system_id)
 
 
 @router.get("/{system_id}", response_model=SystemOut)

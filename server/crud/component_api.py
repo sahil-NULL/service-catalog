@@ -47,7 +47,6 @@ def create_component_api(db: Session, link_data: ComponentAPICreate):
     db.commit()
     db.refresh(db_link)
 
-    print("Incoming UUIDs:", link_data.component_id, type(link_data.component_id))
     return db_link
 
 # 🔹 Get all API links for a component

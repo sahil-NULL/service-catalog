@@ -28,6 +28,10 @@ def read_api(api_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="API not found")
     return db_api
 
+@router.get("/addable/", response_model=list[APIOut])
+def get_all_addable_apis_by_user(component_id: str, user_id: str, organisation_id: str, db: Session = Depends(get_db)):
+    return api_crud.get_all_addable_apis_by_user_id(db, component_id, user_id, organisation_id)
+
 @router.put("/{api_id}", response_model=APIOut)
 def update_api(api_id: str, updates: APIUpdate, db: Session = Depends(get_db)):
     updated = api_crud.update_api(db, api_id, updates)

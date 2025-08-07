@@ -21,6 +21,9 @@ def list_resources(db: Session = Depends(get_db)):
 def get_all_resources_by_group(group_id: str, db: Session = Depends(get_db)):
     return resource_crud.get_all_by_group_id(db, group_id)
 
+@router.get("/addable/", response_model=list[ResourceOut])
+def get_all_addable_resources_by_user(component_id: str, user_id: str, organisation_id: str, db: Session = Depends(get_db)):
+    return resource_crud.get_all_addable_resources_by_user_id(db, component_id, user_id, organisation_id)
 
 @router.get("/{resource_id}", response_model=ResourceOut)
 def read_resource(resource_id: str, db: Session = Depends(get_db)):

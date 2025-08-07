@@ -1,10 +1,13 @@
 from uuid import UUID
 from sqlalchemy.orm import Session
+from sqlalchemy import select
+from ..models.component_dependency import ComponentDependency
 from ..models.component import Component
 from ..schemas.component import ComponentCreate, ComponentUpdate
 from ..models.group import Group
+from ..models.group_component import group_components
 from ..schemas.group_component import GroupComponentCreate
-from ..crud import group_component
+from ..crud import group_component, group_user
 from fastapi import HTTPException
 
 
@@ -28,6 +31,60 @@ def get_all_by_group_id(db: Session, group_id: str):
     # Step 2: Batch query all components
     components = db.query(Component).filter(Component.id.in_(component_ids)).all()
     print(components)
+
+    return components
+
+
+def get_all_addable_components_by_user_id(db: Session, user_id: str, organisation_id: str, component_id: str):
+    # Step 1: Get all groups of the user in the organisation
+    groups = group_user.get_groups_by_user_and_organisation(db, user_id, organisation_id)
+    group_ids = [group.id for group in groups]
+
+    if not group_ids:
+        return []
+
+    # Step 2: Get all components available in the user's groups (from group_components)
+    group_component_rows = db.execute(
+        select(group_components.c.component_id).where(
+            group_components.c.group_id.in_(group_ids)
+        )
+    ).fetchall()
+
+    group_component_ids = {row.component_id for row in group_component_rows}
+
+    if not group_component_ids:
+        return []
+
+    # Step 3: Get all components that are already linked to the component
+    visited = set()
+    stack = [component_id]
+
+    linked_component_ids = set()
+
+    while stack:
+        current_id = stack.pop()
+        if current_id in visited:
+            continue
+        visited.add(current_id)
+        linked_component_ids.add(current_id)
+
+        # Fetch outgoing dependencies from current component
+        deps = db.query(ComponentDependency).filter(
+            ComponentDependency.source_component_id == current_id
+        ).all()
+
+        for dep in deps:
+            if dep.target_component_id not in visited:
+                stack.append(dep.target_component_id)
+
+    # Step 4: Filter out components already in the component
+    addable_component_ids = list(group_component_ids - linked_component_ids)
+
+    if not addable_component_ids:
+        return []
+
+    # Step 5: Fetch component objects
+    components = db.query(Component).filter(Component.id.in_(addable_component_ids)).all()
 
     return components
 

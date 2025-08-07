@@ -1,9 +1,13 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 from ..models.resource import Resource
+from ..models.group_resource import group_resources
 from ..schemas.resource import ResourceCreate, ResourceUpdate
 from ..models.group import Group
 from ..schemas.group_resource import GroupResourceCreate
 from ..crud import group_resource
+from ..crud import group_user
+from ..crud import component_resource
 from fastapi import HTTPException
 
 
@@ -52,6 +56,44 @@ def get_all_by_group_id(db: Session, group_id: str):
 
     # Step 2: Batch query all resources
     resources = db.query(Resource).filter(Resource.id.in_(resource_ids)).all()
+
+    return resources
+
+def get_all_addable_resources_by_user_id(db: Session, component_id: str, user_id: str, organisation_id: str):
+    # Step 1: Get all groups of the user in the organisation
+    groups = group_user.get_groups_by_user_and_organisation(db, user_id, organisation_id)
+    group_ids = [str(group.id) for group in groups]
+
+    if not group_ids:
+        return []
+
+    # Step 2: Get all resources available in the user's groups (from group_resource)
+    group_resource_rows = db.execute(
+        select(group_resources.c.resource_id).where(
+            group_resources.c.group_id.in_(group_ids)
+        )
+    ).fetchall()
+
+    group_resource_ids = {row.resource_id for row in group_resource_rows}
+
+
+    if not group_resource_ids:
+        return []
+
+    # Step 3: Get all resources already linked to the component
+    component_resource_rows = component_resource.get_resources_by_component(db, component_id)
+    linked_resource_ids = {row.resource_id for row in component_resource_rows}
+
+
+    # Step 4: Filter out resources already in the component
+    addable_resource_ids = list(group_resource_ids - linked_resource_ids)
+
+
+    if not addable_resource_ids:
+        return []
+
+    # Step 5: Fetch resource objects
+    resources = db.query(Resource).filter(Resource.id.in_(addable_resource_ids)).all()
 
     return resources
 

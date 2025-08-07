@@ -35,6 +35,10 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 def get_all_users_by_group(group_id: str, db: Session = Depends(get_db)):
     return user_crud.get_all_by_group_id(db, group_id)
 
+@router.get("/addable/{group_id}", response_model=List[UserOut])
+def get_addable_users_for_group(group_id: str, db: Session = Depends(get_db)):
+    return user_crud.get_all_addable_users_for_group(db, group_id)
+
 @router.put("/{user_id}", response_model=UserOut)
 def update_user(user_id: str, user: UserUpdate, db: Session = Depends(get_db)):
     updated_user = user_crud.update_user(db, user_id, user)
